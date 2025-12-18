@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::physics_components::*;
+use crate::physics::components::*;
 
 pub fn ik_fabrik_update(
     chains: Query<(Entity, &IkChain, &IkTarget, Option<&IkPole>)>,

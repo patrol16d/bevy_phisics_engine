@@ -4,16 +4,15 @@ use bevy::app::AppExit;
 use bevy::prelude::*;
 
 mod fps_overlay;
-mod physics_components;
-mod physics_engine;
+mod physics;
 mod player_controller;
 
 use fps_overlay::FpsOverlayPlugin;
-use physics_components::*;
-use physics_engine::PhysicsPlugin;
+use physics::PhysicsPlugin;
+use physics::components::*;
 use player_controller::*;
 
-use crate::physics_engine::CameraCollisionBoom;
+use crate::physics::CameraCollisionBoom;
 
 fn main() {
     App::new()
@@ -31,8 +30,8 @@ fn main() {
                 mouse_look_update,
                 third_person_boom_sync,
                 free_camera_update,
-                log_collisions,
-                log_triggers,
+                // log_collisions,
+                // log_triggers,
             ),
         )
         .add_systems(FixedUpdate, player_apply_movement)
@@ -56,14 +55,7 @@ fn setup(
     spawn_player_and_camera(&mut commands, &mut meshes, &mut materials);
 
     // light
-    commands.spawn((
-        DirectionalLight {
-            illuminance: 20_000.0,
-            shadows_enabled: true,
-            ..Default::default()
-        },
-        Transform::from_xyz(6.0, 10.0, 6.0).looking_at(Vec3::ZERO, Vec3::Y),
-    ));
+    spawn_light(&mut commands);
 
     // floor
     let floor_mesh: Handle<Mesh> = meshes.add(Cuboid::new(40.0, 1.0, 40.0));
@@ -93,79 +85,7 @@ fn setup(
     ));
 
     // static walls
-    let size = Vec3::new(10.0, 5.0, 1.0);
-    let wall_mesh: Handle<Mesh> = meshes.add(Cuboid::from_size(size));
-    let wall_mat: Handle<StandardMaterial> = materials.add(Color::srgb(0.2, 0.25, 0.82));
-    commands.spawn((
-        Mesh3d(wall_mesh.clone()),
-        MeshMaterial3d(wall_mat.clone()),
-        Transform::from_xyz(0.0, 2.5, 10.0),
-        Collider {
-            shape: ColliderShape::Cuboid {
-                half_extents: size / 2.0,
-            },
-            material: ColliderMaterial {
-                friction: 0.9,
-                restitution: 0.0,
-            },
-            is_sensor: false,
-            collision_layers: CollisionLayers::default(),
-            offset: Transform::IDENTITY,
-            contact_skin: 0.002,
-        },
-        RigidBody {
-            body_type: BodyType::Static,
-            flags: BodyFlags::ENABLE_COLLISIONS,
-            ..Default::default()
-        },
-    ));
-    commands.spawn((
-        Mesh3d(wall_mesh.clone()),
-        MeshMaterial3d(wall_mat.clone()),
-        Transform::from_xyz(-4.0, 2.5, 13.0),
-        Collider {
-            shape: ColliderShape::Cuboid {
-                half_extents: size / 2.0,
-            },
-            material: ColliderMaterial {
-                friction: 0.9,
-                restitution: 0.0,
-            },
-            is_sensor: false,
-            collision_layers: CollisionLayers::default(),
-            offset: Transform::IDENTITY,
-            contact_skin: 0.002,
-        },
-        RigidBody {
-            body_type: BodyType::Static,
-            flags: BodyFlags::ENABLE_COLLISIONS,
-            ..Default::default()
-        },
-    ));
-    commands.spawn((
-        Mesh3d(wall_mesh),
-        MeshMaterial3d(wall_mat),
-        Transform::from_rotation(Quat::from_rotation_y(1.6))
-            .with_translation(Vec3::new(-12.0, 2.5, 13.0)),
-        Collider {
-            shape: ColliderShape::Cuboid {
-                half_extents: size / 2.0,
-            },
-            material: ColliderMaterial {
-                friction: 0.9,
-                restitution: 0.0,
-            },
-            is_sensor: false,
-            collision_layers: CollisionLayers::default(),
-            offset: Transform::IDENTITY,
-            contact_skin: 0.002,
-        },
-        RigidBody {
-            body_type: BodyType::Static,
-            flags: BodyFlags::ENABLE_COLLISIONS,
-            ..Default::default()
-        },
-    ));
+    spawn_static_walls(&mut commands, &mut meshes, &mut materials);
 
     // wall
     spawn_wall(&mut commands, &mut meshes, &mut materials);
@@ -268,6 +188,97 @@ fn setup(
     spawn_static_bals(&mut commands);
 }
 
+fn spawn_static_walls(
+    commands: &mut Commands<'_, '_>,
+    meshes: &mut ResMut<'_, Assets<Mesh>>,
+    materials: &mut ResMut<'_, Assets<StandardMaterial>>,
+) {
+    let size = Vec3::new(10.0, 5.0, 1.0);
+    let wall_mesh: Handle<Mesh> = meshes.add(Cuboid::from_size(size));
+    let wall_mat: Handle<StandardMaterial> = materials.add(Color::srgb(0.2, 0.25, 0.82));
+    commands.spawn((
+        Mesh3d(wall_mesh.clone()),
+        MeshMaterial3d(wall_mat.clone()),
+        Transform::from_xyz(0.0, 2.5, 10.0),
+        Collider {
+            shape: ColliderShape::Cuboid {
+                half_extents: size / 2.0,
+            },
+            material: ColliderMaterial {
+                friction: 0.9,
+                restitution: 0.0,
+            },
+            is_sensor: false,
+            collision_layers: CollisionLayers::default(),
+            offset: Transform::IDENTITY,
+            contact_skin: 0.002,
+        },
+        RigidBody {
+            body_type: BodyType::Static,
+            flags: BodyFlags::ENABLE_COLLISIONS,
+            ..Default::default()
+        },
+    ));
+    commands.spawn((
+        Mesh3d(wall_mesh.clone()),
+        MeshMaterial3d(wall_mat.clone()),
+        Transform::from_xyz(-4.0, 2.5, 13.0),
+        Collider {
+            shape: ColliderShape::Cuboid {
+                half_extents: size / 2.0,
+            },
+            material: ColliderMaterial {
+                friction: 0.9,
+                restitution: 0.0,
+            },
+            is_sensor: true,
+            collision_layers: CollisionLayers::default(),
+            offset: Transform::IDENTITY,
+            contact_skin: 0.002,
+        },
+        RigidBody {
+            body_type: BodyType::Static,
+            flags: BodyFlags::ENABLE_COLLISIONS,
+            ..Default::default()
+        },
+    ));
+    commands.spawn((
+        Mesh3d(wall_mesh),
+        MeshMaterial3d(wall_mat),
+        Transform::from_rotation(Quat::from_rotation_y(1.6))
+            .with_translation(Vec3::new(-12.0, 2.5, 13.0)),
+        Collider {
+            shape: ColliderShape::Cuboid {
+                half_extents: size / 2.0,
+            },
+            material: ColliderMaterial {
+                friction: 0.9,
+                restitution: 0.0,
+            },
+            is_sensor: false,
+            collision_layers: CollisionLayers::default(),
+            offset: Transform::IDENTITY,
+            contact_skin: 0.002,
+        },
+        RigidBody {
+            body_type: BodyType::Static,
+            flags: BodyFlags::ENABLE_COLLISIONS,
+            ..Default::default()
+        },
+    ));
+}
+
+fn spawn_light(commands: &mut Commands<'_, '_>) {
+    commands.spawn((
+        DirectionalLight {
+            illuminance: 20_000.0,
+            shadows_enabled: true,
+            ..Default::default()
+        },
+        Transform::from_xyz(6.0, 10.0, 6.0).looking_at(Vec3::ZERO, Vec3::Y),
+    ));
+}
+
 fn spawn_static_bals(commands: &mut Commands) {
     commands.spawn((
         Transform::from_xyz(-3.0, 0.6, 1.0),
@@ -288,7 +299,7 @@ fn spawn_static_bals(commands: &mut Commands) {
         Transform::from_xyz(-3.0, 0.6, 3.0),
         Collider {
             shape: ColliderShape::Sphere { radius: 0.5 },
-            is_sensor: true,
+            is_sensor: false,
             collision_layers: CollisionLayers::default(),
             ..Default::default()
         },
@@ -302,7 +313,7 @@ fn spawn_static_bals(commands: &mut Commands) {
         Transform::from_xyz(-2.0, 0.8, 4.0),
         Collider {
             shape: ColliderShape::Sphere { radius: 0.5 },
-            is_sensor: true,
+            is_sensor: false,
             collision_layers: CollisionLayers::default(),
             ..Default::default()
         },
@@ -322,9 +333,9 @@ fn spawn_wall(
     let wall_mesh: Handle<Mesh> = meshes.add(Cuboid::new(1.0, 1.0, 1.0));
     let wall_mat: Handle<StandardMaterial> = materials.add(Color::srgb(0.35, 0.35, 0.45));
 
-    for x in 6..7 {
+    for x in 6..8 {
         for y in 2..4 {
-            for z in 1..2 {
+            for z in -1..2 {
                 commands.spawn((
                     Mesh3d(wall_mesh.clone()),
                     MeshMaterial3d(wall_mat.clone()),
@@ -354,6 +365,7 @@ fn spawn_wall(
     }
 }
 
+#[allow(unused)]
 fn log_collisions(mut reader: MessageReader<CollisionEvent>) {
     for ev in reader.read() {
         if ev.started {
@@ -364,6 +376,7 @@ fn log_collisions(mut reader: MessageReader<CollisionEvent>) {
     }
 }
 
+#[allow(unused)]
 fn log_triggers(mut reader: MessageReader<TriggerEvent>) {
     for ev in reader.read() {
         if ev.started {

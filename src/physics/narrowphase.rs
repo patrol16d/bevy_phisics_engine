@@ -2,10 +2,10 @@
 
 use std::collections::HashSet;
 
-use crate::physics_engine::ContactManifoldsResource;
+use crate::physics::ContactManifoldsResource;
 use bevy::prelude::*;
 
-use crate::physics_components::*;
+use crate::physics::components::*;
 
 #[derive(Resource, Default)]
 pub struct BroadphasePairs {

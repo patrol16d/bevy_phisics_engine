@@ -1,8 +1,8 @@
 use bevy::input::mouse::MouseMotion;
 use bevy::prelude::*;
 
-use crate::physics_components::*;
-use crate::physics_engine::CameraCollisionBoom;
+use crate::physics::CameraCollisionBoom;
+use crate::physics::components::*;
 // use crate::physics_engine::{RayCastHit, spherecast};
 
 #[derive(Resource, Debug, Clone, Copy, PartialEq, Eq)]

@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
-use crate::physics_components::*;
-use crate::physics_engine::physics_query::spherecast;
+use crate::physics::components::*;
+use crate::physics::query::spherecast;
 
 #[derive(Debug, Component, Clone, Copy)]
 pub struct CameraCollisionBoom {
@@ -41,7 +41,7 @@ pub fn camera_collision_update(
 
         let ignore: [Entity; 2] = [cam_e, boom.target];
 
-        let hit: Option<crate::physics_engine::RayCastHit> = spherecast(
+        let hit: Option<crate::physics::RayCastHit> = spherecast(
             target_pos,
             dir,
             boom.probe_radius,

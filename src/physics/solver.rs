@@ -2,11 +2,11 @@
 
 use std::collections::HashMap;
 
-use crate::physics_engine::ContactManifoldsResource;
-use crate::physics_engine::physics_narrowphase::CollisionCache;
+use crate::physics::ContactManifoldsResource;
+use crate::physics::narrowphase::CollisionCache;
 use bevy::prelude::*;
 
-use crate::physics_components::*;
+use crate::physics::components::*;
 
 #[derive(Resource, Default)]
 pub struct ContactImpulseCache {

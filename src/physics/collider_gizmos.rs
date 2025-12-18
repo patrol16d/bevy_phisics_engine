@@ -1,36 +1,34 @@
 use bevy::prelude::*;
 
-use crate::physics_components::{BodyType, Collider, ColliderShape, RigidBody};
+use crate::physics::components::{BodyType, Collider, ColliderShape, RigidBody};
 
 #[derive(Component, Debug, Clone, Copy)]
 pub struct ColliderGizmoDebug {
     pub max_speed: f32,
-    pub line_width: f32,
 }
 
 impl Default for ColliderGizmoDebug {
     fn default() -> Self {
-        ColliderGizmoDebug {
-            max_speed: 4.0,
-            line_width: 2.0,
-        }
+        ColliderGizmoDebug { max_speed: 4.0 }
     }
 }
 
 pub fn attach_collider_gizmos(
     mut commands: Commands,
     mut gizmo_assets: ResMut<Assets<GizmoAsset>>,
-    query: Query<Entity, (Added<Collider>, Without<ColliderGizmoDebug>)>,
+    query: Query<Entity, (Added<Collider>, Without<Gizmo>)>,
 ) {
     for e in query.iter() {
         let gizmo: GizmoAsset = GizmoAsset::new();
         let handle: Handle<GizmoAsset> = gizmo_assets.add(gizmo);
 
+        info!("attach_collider_gizmos {:?}", e);
+
         commands.entity(e).insert((
             Gizmo {
                 handle,
                 line_config: GizmoLineConfig {
-                    width: ColliderGizmoDebug::default().line_width,
+                    width: 2.0,
                     ..default()
                 },
                 ..default()
@@ -54,7 +52,7 @@ pub fn update_collider_gizmos(
         let (_combined_translation, _combined_rotation, combined_scale): (Vec3, Quat, Vec3) =
             collider_world_transform(entity_tr, collider);
 
-        let color: Color = choose_color(rb_opt, debug.max_speed);
+        let (color, line_width) = choose_color(rb_opt, debug.max_speed);
 
         let mut gizmo: GizmoAsset = GizmoAsset::new();
 
@@ -79,21 +77,21 @@ pub fn update_collider_gizmos(
         }
 
         gizmo_comp.handle = gizmo_assets.add(gizmo);
-        gizmo_comp.line_config.width = debug.line_width;
+        gizmo_comp.line_config.width = line_width;
     }
 }
 
-fn choose_color(rb_opt: Option<&RigidBody>, max_speed: f32) -> Color {
+fn choose_color(rb_opt: Option<&RigidBody>, max_speed: f32) -> (Color, f32) {
     let Some(rb) = rb_opt else {
-        return Color::srgb(0.75, 0.75, 0.75);
+        return (Color::srgb(0.75, 0.75, 0.75), 2.0);
     };
 
     match rb.body_type {
-        BodyType::Static => Color::srgb(0.25, 0.25, 0.25),
-        BodyType::Kinematic => Color::srgb(1.0, 0.4, 1.0),
+        BodyType::Static => (Color::srgb(0.25, 0.25, 0.25), 1.5),
+        BodyType::Kinematic => (Color::srgb(1.0, 0.4, 1.0), 3.0),
         BodyType::Dynamic => {
             if rb.is_sleeping {
-                return Color::srgb(0.2, 0.35, 1.0);
+                return (Color::srgb(0.2, 0.35, 1.0), 2.0);
             }
 
             let lin: f32 = rb.linear_velocity.length();
@@ -103,7 +101,7 @@ fn choose_color(rb_opt: Option<&RigidBody>, max_speed: f32) -> Color {
             let denom: f32 = max_speed.max(1e-6);
             let t: f32 = (s / denom).clamp(0.0, 1.0);
 
-            Color::srgb(t, 1.0 - t, 0.0)
+            (Color::srgb(t, 1.0 - t, 0.0), 1.0 + s)
         }
     }
 }

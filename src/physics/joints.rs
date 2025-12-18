@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::physics_components::*;
+use crate::physics::components::*;
 
 pub fn solve_joints_positions(
     config: Res<PhysicsConfig>,

@@ -1,4 +1,4 @@
-// physics_components.rs
+// physics::components.rs
 
 use bevy::prelude::*;
 
@@ -352,6 +352,7 @@ pub struct Joint {
 
 // Events (kontakt / trigger)
 
+#[allow(unused)]
 #[derive(Debug, Clone, Message)]
 pub struct CollisionEvent {
     pub a: Entity,
@@ -359,6 +360,7 @@ pub struct CollisionEvent {
     pub started: bool,
 }
 
+#[allow(unused)]
 #[derive(Debug, Clone, Message)]
 pub struct TriggerEvent {
     pub sensor: Entity,

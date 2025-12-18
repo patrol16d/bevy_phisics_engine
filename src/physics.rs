@@ -4,22 +4,23 @@ use bevy::prelude::*;
 use bevy::time::{Fixed, Time};
 use std::collections::HashSet;
 
-use crate::physics_components::*;
 pub use camera_collision::{CameraCollisionBoom, camera_collision_update};
-use physics_ik::ik_fabrik_update;
-use physics_joints::{handle_joint_breaks, solve_joints_positions, solve_joints_velocities};
-use physics_narrowphase::{BroadphasePairs, CollisionCache, narrowphase_build_manifolds};
+use components::*;
+use ik::ik_fabrik_update;
+use joints::{handle_joint_breaks, solve_joints_positions, solve_joints_velocities};
+use narrowphase::{BroadphasePairs, CollisionCache, narrowphase_build_manifolds};
 #[allow(unused)]
-pub use physics_query::{RayCastHit, spherecast};
-use physics_solver::{ContactImpulseCache, prune_impulse_cache, solve_contacts, solve_positions};
+pub use query::{RayCastHit, spherecast};
+use solver::{ContactImpulseCache, prune_impulse_cache, solve_contacts, solve_positions};
 
 mod camera_collision;
 mod collider_gizmos;
-mod physics_ik;
-mod physics_joints;
-mod physics_narrowphase;
-mod physics_query;
-mod physics_solver;
+pub mod components;
+mod ik;
+mod joints;
+mod narrowphase;
+mod query;
+mod solver;
 
 pub struct PhysicsPlugin;
 

@@ -1,7 +1,7 @@
 use bevy::ecs::query::QueryFilter;
 use bevy::prelude::*;
 
-use crate::physics_components::*;
+use crate::physics::components::*;
 
 #[allow(unused)]
 #[derive(Debug, Clone, Copy)]
