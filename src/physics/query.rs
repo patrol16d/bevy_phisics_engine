@@ -12,16 +12,17 @@ pub struct RayCastHit {
     pub distance: f32,
 }
 
-// pub fn raycast<F: QueryFilter>(
-//     origin: Vec3,
-//     dir: Vec3,
-//     max_dist: f32,
-//     layers: Option<CollisionLayers>,
-//     ignore: &[Entity],
-//     query: &Query<(Entity, &Collider, &Transform, Option<&BroadphaseProxy>), F>,
-// ) -> Option<RayCastHit> {
-//     spherecast(origin, dir, 0.0, max_dist, layers, ignore, query)
-// }
+#[allow(unused)]
+pub fn raycast<F: QueryFilter>(
+    origin: Vec3,
+    dir: Vec3,
+    max_dist: f32,
+    layers: Option<CollisionLayers>,
+    ignore: &[Entity],
+    query: &Query<(Entity, &Collider, &Transform, Option<&BroadphaseProxy>), F>,
+) -> Option<RayCastHit> {
+    spherecast(origin, dir, 0.0, max_dist, layers, ignore, query)
+}
 
 pub fn spherecast<F: QueryFilter>(
     origin: Vec3,

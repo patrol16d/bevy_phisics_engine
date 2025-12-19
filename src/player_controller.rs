@@ -5,6 +5,24 @@ use crate::physics::CameraCollisionBoom;
 use crate::physics::components::*;
 // use crate::physics_engine::{RayCastHit, spherecast};
 
+pub struct PlayerControllerPlugin;
+
+impl Plugin for PlayerControllerPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(
+            Update,
+            (
+                toggle_camera_mode,
+                player_input_update,
+                mouse_look_update,
+                third_person_boom_sync,
+                free_camera_update,
+            ),
+        )
+        .add_systems(FixedUpdate, player_apply_movement);
+    }
+}
+
 #[derive(Resource, Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CameraMode {
     Follow,
@@ -263,7 +281,7 @@ pub fn mouse_look_update(
 
             cam.yaw -= delta.x * sens;
             cam.pitch -= delta.y * sens;
-            cam.pitch = cam.pitch.clamp(-1.2, 0.2);
+            cam.pitch = cam.pitch.clamp(-1.2, 1.1);
         }
         CameraMode::Free => {
             let mut tr: Mut<Transform> = match q_free.single_mut() {

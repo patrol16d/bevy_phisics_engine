@@ -3,38 +3,41 @@
 use bevy::app::AppExit;
 use bevy::prelude::*;
 
-mod fps_overlay;
+mod crosshair;
 mod physics;
 mod player_controller;
+mod ui_debug;
 
-use fps_overlay::FpsOverlayPlugin;
+use crosshair::CrosshairPlugin;
+use physics::CameraCollisionBoom;
 use physics::PhysicsPlugin;
 use physics::components::*;
 use player_controller::*;
-
-use crate::physics::CameraCollisionBoom;
+use ui_debug::DebugOverlayPlugin;
+use ui_debug::FpsOverlayPlugin;
 
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_plugins(PhysicsPlugin)
+        .add_plugins(PlayerControllerPlugin)
+        .add_plugins(CrosshairPlugin {
+            shape: crosshair::CrosshairShape::Dot,
+            size: 5.0,
+        })
+        .add_plugins(DebugOverlayPlugin)
         .add_plugins(FpsOverlayPlugin::default())
         .init_resource::<CameraMode>()
         .add_systems(Startup, setup)
         .add_systems(
             Update,
             (
+                toggle_gravity,
                 exit_on_esc,
-                toggle_camera_mode,
-                player_input_update,
-                mouse_look_update,
-                third_person_boom_sync,
-                free_camera_update,
                 // log_collisions,
                 // log_triggers,
             ),
         )
-        .add_systems(FixedUpdate, player_apply_movement)
         .run();
 }
 
@@ -53,6 +56,8 @@ fn setup(
     config.baumgarte = 0.2;
 
     spawn_player_and_camera(&mut commands, &mut meshes, &mut materials);
+
+    commands.spawn(());
 
     // light
     spawn_light(&mut commands);
@@ -421,14 +426,15 @@ fn spawn_player_and_camera(
                 body_type: BodyType::Dynamic,
                 flags: BodyFlags::ENABLE_GRAVITY
                     | BodyFlags::ENABLE_TRANSLATION
-                    // | BodyFlags::ENABLE_ROTATION
+                    | BodyFlags::ENABLE_ROTATION
                     | BodyFlags::ENABLE_COLLISIONS
                     | BodyFlags::ENABLE_SOLVER
-                    | BodyFlags::SLEEPING_ALLOWED,
+                    // | BodyFlags::SLEEPING_ALLOWED
+                    ,
                 // mass: 5.0,
                 inv_mass: 1.0 / 5.0,
                 linear_damping: 0.04,
-                angular_damping: 0.08,
+                angular_damping: 0.8,
                 ..Default::default()
             },
         ))
@@ -448,8 +454,8 @@ fn spawn_player_and_camera(
         },
         CameraCollisionBoom {
             target: player_entity,
-            local_target_offset: Vec3::new(0.0, 1.8, 0.0),
-            local_camera_offset: Vec3::new(0.0, 0.0, 7.5),
+            local_target_offset: Vec3::new(0.0, 1.5, 0.0),
+            local_camera_offset: Vec3::new(1.0, 0.0, 7.5),
             probe_radius: 0.25,
             skin: 0.05,
             layers: None,
@@ -460,5 +466,17 @@ fn spawn_player_and_camera(
 fn exit_on_esc(keys: Res<ButtonInput<KeyCode>>, mut exit: MessageWriter<AppExit>) {
     if keys.just_pressed(KeyCode::Escape) {
         exit.write(AppExit::Success);
+    }
+}
+
+pub fn toggle_gravity(keys: Res<ButtonInput<KeyCode>>, mut config: ResMut<PhysicsConfig>) {
+    if !keys.just_pressed(KeyCode::KeyG) {
+        return;
+    }
+
+    if config.gravity.length_squared() > 1.1 {
+        config.gravity = Vec3::new(0.0, -1.0, 0.0);
+    } else {
+        config.gravity = Vec3::new(0.0, -9.81, 0.0);
     }
 }

@@ -290,8 +290,8 @@ impl Default for PhysicsConfig {
             warm_starting: true,
             sleep: SleepConfig {
                 enable: true,
-                linear_threshold: 0.05,
-                angular_threshold: 0.05,
+                linear_threshold: 0.5,
+                angular_threshold: 0.5,
                 frames_required: 30,
             },
             position_correction: PositionCorrectionConfig {

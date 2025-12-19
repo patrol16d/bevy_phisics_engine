@@ -4,14 +4,12 @@ use bevy::prelude::*;
 use bevy::time::{Fixed, Time};
 use std::collections::HashSet;
 
-pub use camera_collision::{CameraCollisionBoom, camera_collision_update};
+pub use camera_collision::CameraCollisionBoom;
 use components::*;
-use ik::ik_fabrik_update;
-use joints::{handle_joint_breaks, solve_joints_positions, solve_joints_velocities};
-use narrowphase::{BroadphasePairs, CollisionCache, narrowphase_build_manifolds};
+use narrowphase::{BroadphasePairs, CollisionCache};
 #[allow(unused)]
-pub use query::{RayCastHit, spherecast};
-use solver::{ContactImpulseCache, prune_impulse_cache, solve_contacts, solve_positions};
+pub use query::{RayCastHit, raycast, spherecast};
+use solver::ContactImpulseCache;
 
 mod camera_collision;
 mod collider_gizmos;
@@ -52,7 +50,7 @@ impl Plugin for PhysicsPlugin {
             .add_message::<CollisionEvent>()
             .add_message::<TriggerEvent>()
             .add_message::<JointBreakEvent>()
-            .add_systems(Update, ik_fabrik_update)
+            .add_systems(Update, ik::ik_fabrik_update)
             .add_systems(Startup, physics_apply_fixed_timestep)
             .configure_sets(
                 FixedUpdate,
@@ -75,18 +73,18 @@ impl Plugin for PhysicsPlugin {
                     wake_on_transform_change.in_set(PhysicsSet::Sync),
                     apply_kinematic_velocities.in_set(PhysicsSet::Sync),
                     broadphase_build_pairs.in_set(PhysicsSet::Broadphase),
-                    narrowphase_build_manifolds.in_set(PhysicsSet::Narrowphase),
-                    solve_contacts.in_set(PhysicsSet::Solve),
-                    solve_positions.in_set(PhysicsSet::Solve),
-                    solve_joints_positions.in_set(PhysicsSet::Solve),
-                    solve_joints_velocities.in_set(PhysicsSet::Solve),
+                    narrowphase::narrowphase_build_manifolds.in_set(PhysicsSet::Narrowphase),
+                    solver::solve_contacts.in_set(PhysicsSet::Solve),
+                    solver::solve_positions.in_set(PhysicsSet::Solve),
+                    joints::solve_joints_positions.in_set(PhysicsSet::Solve),
+                    joints::solve_joints_velocities.in_set(PhysicsSet::Solve),
                     integrate_transforms.in_set(PhysicsSet::Integrate),
                     emit_contact_events.in_set(PhysicsSet::Events),
-                    prune_impulse_cache.in_set(PhysicsSet::Events),
-                    handle_joint_breaks.in_set(PhysicsSet::Events),
+                    solver::prune_impulse_cache.in_set(PhysicsSet::Events),
+                    joints::handle_joint_breaks.in_set(PhysicsSet::Events),
                     update_previous_transforms.in_set(PhysicsSet::Events),
                     collider_gizmos::update_collider_gizmos.in_set(PhysicsSet::Events),
-                    camera_collision_update.in_set(PhysicsSet::Events),
+                    camera_collision::camera_collision_update.in_set(PhysicsSet::Events),
                 ),
             );
     }

@@ -22,8 +22,6 @@ pub fn attach_collider_gizmos(
         let gizmo: GizmoAsset = GizmoAsset::new();
         let handle: Handle<GizmoAsset> = gizmo_assets.add(gizmo);
 
-        info!("attach_collider_gizmos {:?}", e);
-
         commands.entity(e).insert((
             Gizmo {
                 handle,
